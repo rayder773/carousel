@@ -19,29 +19,29 @@ ul {
 
 .slide {
     background: green;
-    margin: 0 20px;
+    //margin: 0 20px;
     width: 100%;
     position: absolute;
     height: 50px;
-    visibility: hidden;
+    //visibility: hidden;
     /* display: none; */
     transition: transform .5s ease;
 }
 
-.slide:nth-child(1) {
-    background: green;
-}
-
-.slide:nth-child(2) {
-    background: red;
-}
-
-.slide:nth-child(3) {
-    background: blue;
-}
+//.slide:nth-child(1) {
+//    background: green;
+//}
+//
+//.slide:nth-child(2) {
+//    background: red;
+//}
+//
+//.slide:nth-child(3) {
+//    background: blue;
+//}
 
 .active {
-    visibility: visible;
+    //visibility: visible;
     /* display: flex; */
 }
 
