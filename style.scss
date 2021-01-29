@@ -25,7 +25,8 @@ ul {
     height: 50px;
     //visibility: hidden;
     /* display: none; */
-    transition: transform .5s ease;
+    transition-property: transform;
+    transition-timing-function: ease;
 }
 
 //.slide:nth-child(1) {

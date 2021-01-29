@@ -2,12 +2,19 @@ import './style.scss';
 
 class Carousel {
     constructor(
-        limit = 3,
+        options = {}
     ) {
+        const {
+            limit = 3,
+            animationTime = 500,
+        } = options;
+
         this.$nextBtn = document.querySelector('.next-btn');
         this.$prevBtn = document.querySelector('.prev-btn');
         this.container = document.querySelector('.carousel-container');
         this.containerWidth = this.container.getClientRects()[0].width;
+
+        this.animationTime = animationTime;
         this.limit = limit;
     }
 
@@ -18,45 +25,47 @@ class Carousel {
         closest.classList.add('active');
         currentSlide.classList.remove('active');
         currentSlide.style.transform = `translateX(${isNext ? '-' : ''}${this.containerWidth}px)`;
+
+        this.$nextBtn.setAttribute('disabled', 'true');
+        this.$prevBtn.setAttribute('disabled', 'true');
+
+        setTimeout(() => {
+            this.$nextBtn.removeAttribute('disabled');
+            this.$prevBtn.removeAttribute('disabled');
+        }, this.animationTime)
     }
 
-    removeSlides(isNext = true) {
-        const allSlides = document.querySelectorAll('.slide');
+    removeSlide(isNext = true) {
+        let allSlides = document.querySelectorAll('.slide');
         const currentSlide = document.querySelector('.slide.active');
-        const currentSlideIndex = currentSlide.getAttribute('data-slide-index');
+        const currentSlideIndex = +currentSlide.getAttribute('data-slide-index');
 
-        if (isNext) {
-            if(currentSlideIndex - 2 >= 0) {
-                const forRemove = document.querySelector(`[data-slide-index='${currentSlideIndex - 2}']`);
-                let clone = forRemove.cloneNode(true);
-                forRemove.remove();
+        const indexForDelete = currentSlideIndex + (isNext ? -2 : 2);
+        const condition = isNext
+            ?  currentSlideIndex - 2 >= 0
+            : currentSlideIndex + 2 <= allSlides.length - 1;
+        const sign = isNext ? '' : '-';
+        const insertMethod = isNext ? 'append' : 'prepend';
 
+        const setDataSlideIndex = () => {
+            allSlides = document.querySelectorAll('.slide');
 
-                for (let i = 0; i < allSlides.length; i++) {
-                    allSlides[i].setAttribute('data-slide-index', i.toString())
-                }
-
-                clone.setAttribute('data-slide-index', allSlides.length);
-                clone.style.transform = `translateX(${this.containerWidth}px)`;
-
-                document.querySelector('ul').append(clone);
+            for (let i = 0; i < allSlides.length; i++) {
+                allSlides[i].setAttribute('data-slide-index', i.toString());
             }
-        } else {
-            if(currentSlideIndex + 2 < allSlides.length) {
-                const forRemove = document.querySelector(`[data-slide-index='${currentSlideIndex + 2}']`);
-                let clone = forRemove.cloneNode(true);
-                forRemove.remove();
+        }
 
+        const forRemove = document.querySelector(`[data-slide-index='${indexForDelete}']`);
+        let clone = forRemove.cloneNode(true);
+        forRemove.remove();
 
-                for (let i = 0; i < allSlides.length; i++) {
-                    allSlides[i].setAttribute('data-slide-index', i.toString())
-                }
+        if (condition) {
+            clone.setAttribute('data-slide-index', allSlides.length);
+            clone.style.transform = `translateX(${sign}${this.containerWidth}px)`;
 
-                clone.setAttribute('data-slide-index', allSlides.length);
-                clone.style.transform = `translateX(${this.containerWidth}px)`;
+            document.querySelector('ul')[insertMethod](clone);
 
-                document.querySelector('ul').append(clone);
-            }
+            setDataSlideIndex();
         }
     }
 
@@ -64,13 +73,13 @@ class Carousel {
         this.$nextBtn.addEventListener('click', e => {
             e.preventDefault()
             this.changeSlide()
-            this.removeSlides()
+            this.removeSlide()
         })
 
         this.$prevBtn.addEventListener('click', e => {
             e.preventDefault()
             this.changeSlide(false);
-            this.removeSlides(false)
+            this.removeSlide(false)
         })
     }
 
@@ -86,8 +95,7 @@ class Carousel {
             listItem.innerText = this.slides[i];
 
             listItem.classList.add('slide');
-            listItem.setAttribute('data-slide-index', i.toString());
-            list.append(listItem);
+            listItem.style.transitionDuration = `${this.animationTime}ms`;
 
             if (i === 0) {
                 listItem.classList.add('active');
@@ -102,7 +110,14 @@ class Carousel {
             if (i === 2) {
                 listItem.style.transform += `translateX(-${this.containerWidth}px)`;
                 listItem.style.background = 'blue';
+                listItem.setAttribute('data-slide-index', (0).toString());
+                list.prepend(listItem)
+                break;
             }
+
+            listItem.setAttribute('data-slide-index', (i + 1).toString());
+
+            list.append(listItem);
         }
     }
 }
