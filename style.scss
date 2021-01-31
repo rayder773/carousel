@@ -19,31 +19,15 @@ ul {
 
 .slide {
     background: green;
-    //margin: 0 20px;
     width: 100%;
     position: absolute;
     height: 50px;
-    //visibility: hidden;
-    /* display: none; */
     transition-property: transform;
     transition-timing-function: ease;
 }
 
-//.slide:nth-child(1) {
-//    background: green;
-//}
-//
-//.slide:nth-child(2) {
-//    background: red;
-//}
-//
-//.slide:nth-child(3) {
-//    background: blue;
-//}
-
 .active {
-    //visibility: visible;
-    /* display: flex; */
+
 }
 
 .next-btn, .prev-btn {

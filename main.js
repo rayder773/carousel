@@ -9,17 +9,19 @@ class Carousel {
             animationTime = 500,
             showCount = 1,
             autoplay = false,
+            autoplayInterval = 2000,
+            gapBetweenSlides = -1,
+            showNearest = false,
+            root = null
         } = options;
 
-        this.$nextBtn = document.querySelector('.next-btn');
-        this.$prevBtn = document.querySelector('.prev-btn');
-        this.container = document.querySelector('.carousel-container');
-        this.containerWidth = this.container.getClientRects()[0].width + 20;
-        this.list = document.querySelector('ul');
+        this.gapBetweenSlides = gapBetweenSlides;
         this.autoplay = autoplay;
-
         this.animationTime = animationTime;
         this.limit = limit;
+        this.autoplayInterval = autoplayInterval;
+        this.showNearest = showNearest;
+        this.root = root;
     }
 
     changeSlide(isNext = true) {
@@ -46,16 +48,13 @@ class Carousel {
     }
 
     renewSlides(isNext = true) {
-        console.log('check');
         this.changeSlide(isNext);
         this.removeSlide(isNext);
     }
 
     createSlide(index, direction = '') {
-        const listItem = document.createElement('li');
-        console.log('direction', direction);
+        const listItem = this.parseTemplate(this.slides[index])
 
-        listItem.innerText = this.slides[index];
         listItem.classList.add('slide');
         listItem.style.transform = `translateX(${direction}${this.containerWidth}px)`;
         listItem.style.transitionDuration = `${this.animationTime}ms`;
@@ -115,77 +114,148 @@ class Carousel {
             e.preventDefault();
             this.renewSlides(false);
         })
+
+        if (this.autoplay === true) {
+            this.container.addEventListener('mouseover', e => {
+                this.stopAutoPlay();
+            })
+
+            this.container.addEventListener('mouseout', e => {
+                this.startAutoplay();
+            })
+        }
     }
 
-    setAutoplay() {
-        this.interval = setInterval(() => this.renewSlides(), 2000);
+    startAutoplay() {
+        this.interval = setInterval(() => this.renewSlides(), this.autoplayInterval);
+    }
+
+    stopAutoPlay() {
+        clearInterval(this.interval);
+    }
+
+    createElements() {
+        this.$nextBtn = document.createElement('button');
+        this.$nextBtn.classList.add('next-btn');
+        this.$nextBtn.innerText = '>>';
+
+        this.$prevBtn = document.createElement('button');
+        this.$prevBtn.classList.add('prev-btn');
+        this.$prevBtn.innerText = '<<';
+
+        this.container = document.createElement('div');
+        this.container.classList.add('carousel-container');
+
+        this.list = document.createElement('ul')
+        this.list.classList.add('slide-wrapper');
+        this.container.append(this.$nextBtn);
+        this.container.append(this.$prevBtn);
+
+        this.container.append(this.list);
+        document.querySelector(this.root).append(this.container);
+    }
+
+    parseTemplate(slideData) {
+        const listItem = document.createElement('li');
+        let html = this.template;
+
+        if (this.template instanceof HTMLElement) {
+            html = this.template.outerHTML;
+        }
+
+        const data = html.replace(/{{(.*)}}/gmi, (text) => {
+            return slideData[text.match(/\w+/)[0]]
+        })
+
+        listItem.insertAdjacentHTML('afterbegin', data)
+
+        return listItem;
+
+    }
+
+    appendSlideOnInit(index, isActive = false) {
+        const listItem = this.parseTemplate(this.slides[index])
+        listItem.classList.add('slide');
+        listItem.style.transitionDuration = `${this.animationTime}ms`;
+
+        if (isActive) {
+            listItem.classList.add('active');
+        }
+
+        listItem.style.background = getRandomColor();
+        listItem.setAttribute('data-slide-index', index.toString());
+
+        this.list.append(listItem);
+
+        return listItem;
     }
 
     render(slides = [], template) {
-        this.addEvents()
+        this.createElements();
+        this.addEvents();
         this.slides = slides;
         this.template = template;
 
-        const list = document.querySelector('ul');
+        this.containerWidth = this.container.getClientRects()[0].width + this.gapBetweenSlides;
 
         for (let i = 0; i < this.slides.length; i++) {
-           
-            const listItem = document.createElement('li');
-            listItem.innerText = this.slides[i];
-
-            listItem.classList.add('slide');
-            listItem.style.transitionDuration = `${this.animationTime}ms`;
-
             if (i === 0) {
-                listItem.classList.add('active');
-                listItem.style.background = getRandomColor();
-                listItem.setAttribute('data-slide-index', i.toString());
-                this.currentSlide = listItem;
-    
-                list.append(listItem);
+                this.currentSlide = this.appendSlideOnInit(i, true);
             }
 
             if (i === 1) {
-                listItem.style.transform += `translateX(${this.containerWidth}px)`;
-                listItem.style.background = getRandomColor();
-                listItem.setAttribute('data-slide-index', i.toString());
-                this.nextSlide = listItem;
-    
-                list.append(listItem);
+                this.nextSlide = this.appendSlideOnInit(i);
+                this.nextSlide.style.transform += `translateX(${this.containerWidth}px)`;
             }
 
             if (i === (this.slides.length - 1)) {
-                listItem.style.transform += `translateX(-${this.containerWidth}px)`;
-                listItem.style.background = getRandomColor();
-                listItem.setAttribute('data-slide-index', i.toString());
-                this.prevSlide = listItem;
-    
-                list.prepend(listItem);
+                this.prevSlide = this.appendSlideOnInit(i);
+                this.prevSlide.style.transform += `translateX(-${this.containerWidth}px)`;
             }
         }
 
         if (this.autoplay) {
-
-            this.setAutoplay()
+            this.startAutoplay();
         }
     }
 
 }
 
 const carousel = new Carousel({
-    // autoplay: true
+    // autoplay: true,
     // limit: 5
+    // gapBetweenSlides: 30,
+    showNearest: true,
+    root: '#root'
 });
 
 
-const slides = new Array(10).fill('').map((_, i) => `slide ${i}`);
-carousel.render(slides)
+const slides = new Array(10).fill('').map((_, i) => {
+    return {
+        title:  `slide ${i}`,
+        test: '228'
+    }
+});
+// const template = `
+//     <div>
+//         <div>Hello {{ title }}</div>
+//         <div>{{test}}</div>
+//     </div>
+//
+// `
+
+const template = document.createElement('div');
+const text = document.createElement('div');
+template.append(text);
+
+text.innerText = '{{title}}'
+carousel.render(slides, template)
 
 function getRandomColor() {
-    var letters = '0123456789ABCDEF';
-    var color = '#';
-    for (var i = 0; i < 6; i++) {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
       color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
-  }
+}
