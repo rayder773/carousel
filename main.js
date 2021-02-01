@@ -12,7 +12,8 @@ class Carousel {
             autoplayInterval = 2000,
             gapBetweenSlides = -1,
             showNearest = false,
-            root = null
+            root = null,
+            keyboardControl = true,
         } = options;
 
         this.gapBetweenSlides = gapBetweenSlides;
@@ -22,6 +23,7 @@ class Carousel {
         this.autoplayInterval = autoplayInterval;
         this.showNearest = showNearest;
         this.root = root;
+        this.keyboardControl = keyboardControl;
     }
 
     changeSlide(isNext = true) {
@@ -115,6 +117,22 @@ class Carousel {
             this.renewSlides(false);
         })
 
+        if(this.keyboardControl === true) {
+            this.container.addEventListener('keydown', e => {
+                console.log(e.keyCode);
+                switch(e.keyCode) {
+                    case 39: //right
+                        console.log(e.key);
+                        this.renewSlides()
+                    break;
+
+                    case 37: //left
+                        this.renewSlides(false)
+                    break;
+                }
+            })
+        }
+
         if (this.autoplay === true) {
             this.container.addEventListener('mouseover', e => {
                 this.stopAutoPlay();
@@ -145,6 +163,7 @@ class Carousel {
 
         this.container = document.createElement('div');
         this.container.classList.add('carousel-container');
+        this.container.setAttribute('tabindex', -1)
 
         this.list = document.createElement('ul')
         this.list.classList.add('slide-wrapper');
@@ -226,7 +245,8 @@ const carousel = new Carousel({
     // limit: 5
     // gapBetweenSlides: 30,
     showNearest: true,
-    root: '#root'
+    root: '#root',
+    keyboardControl: true
 });
 
 
